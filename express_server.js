@@ -11,24 +11,34 @@ const urlDatabase = {
 };
 
 
-
+// root path
 app.get("/", (req,res) => {
   res.send("Hello!");
 });
 
+// Add a new route /urls
 app.get("/urls", (req,res) =>{
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 })
 
+// Add a new route /urls/:b2xVn2
+app.get("/urls/:b2xVn2", (req, res) => {
+  const templateVars = { shortURL: req.params.b2xVn2, longURL: urlDatabase.b2xVn2 };
+  res.render("urls_show", templateVars);
+});
+
+// Add a new route /url.json
 app.get("/url.json", (req, res) =>{
   res.json(urlDatabase);
 })
 
+// Add a new route /hello
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+// Server listening on port 8080
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
