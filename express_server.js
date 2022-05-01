@@ -3,7 +3,7 @@ const bodyParser = require("body-parser");
 const app = express();
 const PORT = 8080;
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Express app will use EJS as its templating engine.
 app.set("view engine", "ejs");
@@ -15,19 +15,20 @@ const urlDatabase = {
 
 // generate a random shortURL function
 function generateRandomString() {
-
+  const result = Math.random().toString(36).substring(2,7);
+  console.log(result);
 }
 
 // root path
-app.get("/", (req,res) => {
+app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 // Add a new route /urls
-app.get("/urls", (req,res) =>{
+app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
-})
+});
 
 // Add a new route /urls/new
 app.get("/urls/new", (req, res) => {
@@ -46,9 +47,9 @@ app.get("/urls/:b2xVn2", (req, res) => {
 });
 
 // Add a new route /url.json
-app.get("/url.json", (req, res) =>{
+app.get("/url.json", (req, res) => {
   res.json(urlDatabase);
-})
+});
 
 // Add a new route /hello
 app.get("/hello", (req, res) => {
