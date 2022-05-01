@@ -12,11 +12,12 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+urlDatabase["9sm5xK"]
 
 // generate a random shortURL function
 function generateRandomString() {
   const result = Math.random().toString(36).substring(2,7);
-  console.log(result);
+  return result;
 }
 
 // root path
@@ -36,8 +37,10 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("Ok");
+  const shortURL = generateRandomString()
+  const longURL = req.body.longURL
+  urlDatabase[shortURL] = longURL;
+  res.redirect("/urls");
 });
 
 // Add a new route /urls/:b2xVn2
