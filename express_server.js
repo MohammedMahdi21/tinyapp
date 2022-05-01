@@ -13,6 +13,10 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// generate a random shortURL function
+function generateRandomString() {
+
+}
 
 // root path
 app.get("/", (req,res) => {
