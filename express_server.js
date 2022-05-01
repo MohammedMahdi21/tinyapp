@@ -22,6 +22,11 @@ app.get("/urls", (req,res) =>{
   res.render("urls_index", templateVars);
 })
 
+// Add a new route /urls/new
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
+});
+
 // Add a new route /urls/:b2xVn2
 app.get("/urls/:b2xVn2", (req, res) => {
   const templateVars = { shortURL: req.params.b2xVn2, longURL: urlDatabase.b2xVn2 };
