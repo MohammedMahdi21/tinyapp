@@ -45,12 +45,18 @@ app.post("/urls", (req, res) => {
 
 });
 
-// Add a new route /urls/:shortURL
+// Add a new route for handling our redirect links
 app.get(`/urls/:shortURL`, (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
   const templateVars = { shortURL, longURL };
   res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
 });
 
 // Add a new route /url.json
