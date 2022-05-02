@@ -12,15 +12,15 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-urlDatabase["9sm5xK"]
 
-// generate a random shortURL function
-function generateRandomString() {
+
+// Generate a random shortURL function
+const generateRandomString = function() {
   const result = Math.random().toString(36).substring(2,7);
   return result;
-}
+};
 
-// root path
+// Root path
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -36,16 +36,20 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+// Add a new post handler
 app.post("/urls", (req, res) => {
-  const shortURL = generateRandomString()
-  const longURL = req.body.longURL
+  const shortURL = generateRandomString();
+  const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
-  res.redirect("/urls");
+  res.redirect(`/urls/${shortURL}`);
+
 });
 
-// Add a new route /urls/:b2xVn2
-app.get("/urls/:b2xVn2", (req, res) => {
-  const templateVars = { shortURL: req.params.b2xVn2, longURL: urlDatabase.b2xVn2 };
+// Add a new route /urls/:shortURL
+app.get(`/urls/:shortURL`, (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  const templateVars = { shortURL, longURL };
   res.render("urls_show", templateVars);
 });
 
