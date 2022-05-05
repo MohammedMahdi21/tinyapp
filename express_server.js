@@ -15,36 +15,60 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// global object to store and access the users in the app.
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
 
-// Generate a random shortURL function
-const generateRandomString = function() {
-  const result = Math.random().toString(36).substring(2,7);
+
+// Generate a random shortURL function.
+const generateRandomString = function () {
+  const result = Math.random().toString(36).substring(2, 7);
   return result;
 };
 
-// Root path
+//Lookup helper function.
+const lookupHelper = function (email) {
+  for (let user in users) {
+    if (email === users[user].email) {
+      return true
+    }
+  }
+  return false
+}
+
+// Root path.
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
-// Add a new route /urls
+// Add a new route /urls.
 app.get("/urls", (req, res) => {
-  const templateVars = { 
-    urls: urlDatabase, 
-    username: req.cookies["username"] 
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_index", templateVars);
 });
 
-// Add a new route /urls/new
+// Add a new route /urls/new.
 app.get("/urls/new", (req, res) => {
-  const templateVars = { 
-    username: req.cookies["username"] 
+  const templateVars = {
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_new", templateVars);
 });
 
-// Add a new post handler
+// Add a new post handler.
 app.post("/urls", (req, res) => {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
@@ -53,25 +77,26 @@ app.post("/urls", (req, res) => {
 
 });
 
-// Add a new route for handling our redirect links
+// Add a new route for handling our redirect links.
 app.get(`/urls/:shortURL`, (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
-  const templateVars = { shortURL, 
-    longURL, 
-    username: req.cookies["username"], 
+  const templateVars = {
+    shortURL,
+    longURL,
+    user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
 });
 
-// Redirect the user to the longURL
+// Redirect the user to the longURL.
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
   res.redirect(longURL);
 });
 
-// Post request to delete URL
+// Post request to delete URL.
 app.post("/urls/:shortURL/delete", (req, res) => {
   const shortURL = req.params.shortURL
   delete urlDatabase[shortURL]
@@ -92,29 +117,58 @@ app.post("/login", (req, res) => {
 })
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username')
+  res.clearCookie('user_id')
   res.redirect("/urls")
 })
 
+// Add a new route /register.
 app.get("/register", (req, res) => {
-  const templateVars = { 
-    urls: urlDatabase, 
-    username: req.cookies["username"] 
+  const templateVars = {
+    urls: urlDatabase,
+    user: req.cookies["user_id"]
   };
   res.render("urls_register", templateVars)
 })
 
-// Add a new route /url.json
+
+
+//Add Registration Handler
+app.post("/register", (req, res) => {
+  const { email, password } = req.body
+  const userId = generateRandomString();
+
+  if (password === "" || email === "") {
+    return res.status(400).send("Error 400 - Bad Request");
+
+  } else if (lookupHelper(email)) {
+    console.log(lookupHelper(email))
+    return res.status(400).send("Error 400 - Bad Request");
+
+  } else {
+    users[userId] = {
+      id: userId,
+      email,
+      password
+    }
+    res.cookie("user_id", userId)
+    res.redirect("/urls")
+  }
+
+
+})
+
+
+// Add a new route /url.json.
 app.get("/url.json", (req, res) => {
   res.json(urlDatabase);
 });
 
-// Add a new route /hello
+// Add a new route /hello.
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-// Server listening on port 8080
+// Server listening on port 8080.
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
