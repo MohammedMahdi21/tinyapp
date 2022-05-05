@@ -96,6 +96,14 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls")
 })
 
+app.get("/register", (req, res) => {
+  const templateVars = { 
+    urls: urlDatabase, 
+    username: req.cookies["username"] 
+  };
+  res.render("urls_register", templateVars)
+})
+
 // Add a new route /url.json
 app.get("/url.json", (req, res) => {
   res.json(urlDatabase);
