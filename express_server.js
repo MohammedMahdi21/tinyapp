@@ -36,14 +36,33 @@ const generateRandomString = function () {
   return result;
 };
 
-//Lookup helper function.
-const lookupHelper = function (email) {
+//Lookup helper email function.
+const lookupEmail = function (email) {
   for (let user in users) {
     if (email === users[user].email) {
       return true
     }
   }
   return false
+}
+
+//Lookup password helper function.
+const lookupPassword = function (password) {
+  for (let user in users) {
+    if (password === users[user].password) {
+      return true
+    }
+  }
+  return false
+}
+
+//Lookup user helper function.
+const lookupUserID = function(userEmail){
+  for (let user in users){
+    if(userEmail === users[user].email){
+      return users[user].id;
+    }
+  }
 }
 
 // Root path.
@@ -110,11 +129,28 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls")
 })
 
-app.post("/login", (req, res) => {
-  const login = req.body.username;
-  res.cookie("username", login);
-  res.redirect("/urls")
+app.get("/login", (req, res) => {
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]]
+  };
+  res.render("urls_login", templateVars)
 })
+
+app.post("/login", (req, res) => {
+  const { email, password } = req.body
+
+  if (lookupEmail(email) && lookupPassword(password)) {
+    const userId = lookupUserID(email)
+    res.cookie("user_id", userId);
+    res.redirect("/urls")
+  } else {
+    return res.status(403).send("Error 403 - Forbidden Error");
+  }
+
+})
+
+// global object to store and access the users in the app.
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id')
@@ -131,7 +167,6 @@ app.get("/register", (req, res) => {
 })
 
 
-
 //Add Registration Handler
 app.post("/register", (req, res) => {
   const { email, password } = req.body
@@ -140,8 +175,7 @@ app.post("/register", (req, res) => {
   if (password === "" || email === "") {
     return res.status(400).send("Error 400 - Bad Request");
 
-  } else if (lookupHelper(email)) {
-    console.log(lookupHelper(email))
+  } else if (lookupEmail(email)) {
     return res.status(400).send("Error 400 - Bad Request");
 
   } else {
