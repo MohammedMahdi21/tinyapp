@@ -1,11 +1,11 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080;
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser())
+app.use(cookieParser());
 
 // Express app will use EJS as its templating engine.
 app.set("view engine", "ejs");
@@ -27,43 +27,42 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk"
   }
-}
-
+};
 
 // Generate a random shortURL function.
-const generateRandomString = function () {
+const generateRandomString = function() {
   const result = Math.random().toString(36).substring(2, 7);
   return result;
 };
 
-//Lookup helper email function.
-const lookupEmail = function (email) {
+//Lookup email helper function.
+const lookupEmail = function(email) {
   for (let user in users) {
     if (email === users[user].email) {
-      return true
+      return true;
     }
   }
-  return false
-}
+  return false;
+};
 
 //Lookup password helper function.
-const lookupPassword = function (password) {
+const lookupPassword = function(password) {
   for (let user in users) {
     if (password === users[user].password) {
-      return true
+      return true;
     }
   }
-  return false
-}
+  return false;
+};
 
 //Lookup user helper function.
-const lookupUserID = function(userEmail){
-  for (let user in users){
-    if(userEmail === users[user].email){
+const lookupUserID = function(userEmail) {
+  for (let user in users) {
+    if (userEmail === users[user].email) {
       return users[user].id;
     }
   }
-}
+};
 
 // Root path.
 app.get("/", (req, res) => {
@@ -115,47 +114,48 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-// Post request to delete URL.
+// Post request handler to delete URL.
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const shortURL = req.params.shortURL
-  delete urlDatabase[shortURL]
-  res.redirect("/urls")
-})
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
+});
 
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[id] = longURL
-  res.redirect("/urls")
-})
+  urlDatabase[id] = longURL;
+  res.redirect("/urls");
+});
 
+// Add a new route /login.
 app.get("/login", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
     user: users[req.cookies["user_id"]]
   };
-  res.render("urls_login", templateVars)
-})
+  res.render("urls_login", templateVars);
+});
 
+// Add login post handler
 app.post("/login", (req, res) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
 
   if (lookupEmail(email) && lookupPassword(password)) {
-    const userId = lookupUserID(email)
+    const userId = lookupUserID(email);
     res.cookie("user_id", userId);
-    res.redirect("/urls")
+    res.redirect("/urls");
   } else {
     return res.status(403).send("Error 403 - Forbidden Error");
   }
 
-})
+});
 
 // global object to store and access the users in the app.
-
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id')
-  res.redirect("/urls")
-})
+  res.clearCookie('user_id');
+  res.redirect("/urls");
+});
 
 // Add a new route /register.
 app.get("/register", (req, res) => {
@@ -163,13 +163,12 @@ app.get("/register", (req, res) => {
     urls: urlDatabase,
     user: req.cookies["user_id"]
   };
-  res.render("urls_register", templateVars)
-})
-
+  res.render("urls_register", templateVars);
+});
 
 //Add Registration Handler
 app.post("/register", (req, res) => {
-  const { email, password } = req.body
+  const { email, password } = req.body;
   const userId = generateRandomString();
 
   if (password === "" || email === "") {
@@ -183,14 +182,13 @@ app.post("/register", (req, res) => {
       id: userId,
       email,
       password
-    }
-    res.cookie("user_id", userId)
-    res.redirect("/urls")
+    };
+    res.cookie("user_id", userId);
+    res.redirect("/urls");
   }
 
 
-})
-
+});
 
 // Add a new route /url.json.
 app.get("/url.json", (req, res) => {
