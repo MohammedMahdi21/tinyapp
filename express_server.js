@@ -66,7 +66,11 @@ const lookupUserID = function(userEmail) {
 
 // Root path.
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies["user_id"]]
+  };
+  res.render("root", templateVars);
 });
 
 // Add a new route /urls.
