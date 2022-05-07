@@ -84,23 +84,39 @@ app.get("/urls", (req, res) => {
 
 // Add a new route /urls/new.
 app.get("/urls/new", (req, res) => {
+  if(!req.cookies["user_id"]){
+    res.redirect("/login");
+    return res.status(403).send("Error 401 - Unauthorized Error");
+
+  } else {
   const templateVars = {
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_new", templateVars);
+}
 });
 
 // Add a new post handler.
 app.post("/urls", (req, res) => {
+  if(!req.cookies["user_id"]){
+    res.redirect("/login");
+    return res.status(403).send("Error 401 - Unauthorized Error");
+
+  } else {
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = longURL;
   res.redirect(`/urls/${shortURL}`);
-
+  }
 });
 
 // Add a new route for handling our redirect links.
 app.get(`/urls/:shortURL`, (req, res) => {
+  if(!req.cookies["user_id"]){
+    res.redirect("/login");
+    return res.status(403).send("Error 401 - Unauthorized Error");
+
+  } else {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
   const templateVars = {
@@ -109,6 +125,7 @@ app.get(`/urls/:shortURL`, (req, res) => {
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
+}
 });
 
 // Redirect the user to the longURL.
@@ -120,9 +137,15 @@ app.get("/u/:shortURL", (req, res) => {
 
 // Post request handler to delete URL.
 app.post("/urls/:shortURL/delete", (req, res) => {
+  if(!req.cookies["user_id"]){
+    res.redirect("/login");
+    return res.status(403).send("Error 401 - Unauthorized Error");
+
+  } else {
   const shortURL = req.params.shortURL;
   delete urlDatabase[shortURL];
   res.redirect("/urls");
+  }
 });
 
 app.post("/urls/:id", (req, res) => {
