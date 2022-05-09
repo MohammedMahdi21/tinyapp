@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080;
 
@@ -52,9 +53,10 @@ const lookupEmail = function(email) {
 };
 
 //Lookup password helper function.
-const lookupPassword = function(password) {
+const lookupPassword = function(passwordEntered) {
   for (let user in users) {
-    if (password === users[user].password) {
+    let hashedPassword = users[user].password; 
+    if (bcrypt.compareSync(passwordEntered, hashedPassword)) {
       return true;
     }
   }
@@ -221,6 +223,7 @@ app.get("/register", (req, res) => {
 //Add Registration Handler
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+  const hashedPassword = bcrypt.hashSync(password, 10)
   const userId = generateRandomString();
 
   if (password === "" || email === "") {
@@ -233,7 +236,7 @@ app.post("/register", (req, res) => {
     users[userId] = {
       id: userId,
       email,
-      password
+      password: hashedPassword
     };
     res.cookie("user_id", userId);
     res.redirect("/urls");
