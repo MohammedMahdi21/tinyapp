@@ -11,8 +11,14 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "userRandomID"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "user2RandomID"
+  }
 };
 
 // global object to store and access the users in the app.
@@ -55,6 +61,17 @@ const lookupPassword = function(password) {
   return false;
 };
 
+//Lookup URLs created by the user helper function.
+const urlsForUser = function(id) {
+  const urls = {};
+  for (let userUrls in urlDatabase) {
+    if (id === urlDatabase[userUrls].userID) {
+      urls[userUrls] = { longURL: urlDatabase[userUrls].longURL };
+    }
+  }
+  return urls;
+};
+
 //Lookup user helper function.
 const lookupUserID = function(userEmail) {
   for (let user in users) {
@@ -75,8 +92,12 @@ app.get("/", (req, res) => {
 
 // Add a new route /urls.
 app.get("/urls", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    res.status(401);
+  }
+  const userURLs = urlsForUser(req.cookies["user_id"]);
   const templateVars = {
-    urls: urlDatabase,
+    urls: userURLs,
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_index", templateVars);
@@ -84,75 +105,80 @@ app.get("/urls", (req, res) => {
 
 // Add a new route /urls/new.
 app.get("/urls/new", (req, res) => {
-  if(!req.cookies["user_id"]){
-    res.redirect("/login");
-    return res.status(403).send("Error 401 - Unauthorized Error");
+  if (!req.cookies["user_id"]) {
+    return res.redirect("/login");
 
   } else {
-  const templateVars = {
-    user: users[req.cookies["user_id"]]
-  };
-  res.render("urls_new", templateVars);
-}
+    const templateVars = {
+      user: users[req.cookies["user_id"]]
+    };
+    res.render("urls_new", templateVars);
+  }
 });
 
-// Add a new post handler.
+// Post handler to add new url.
 app.post("/urls", (req, res) => {
-  if(!req.cookies["user_id"]){
+  if (!req.cookies["user_id"]) {
+    res.status(401);
     res.redirect("/login");
-    return res.status(403).send("Error 401 - Unauthorized Error");
 
   } else {
-  const shortURL = generateRandomString();
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
+    const shortURL = generateRandomString();
+    const userID = users[req.cookies["user_id"]].id;
+    const longURL = req.body.longURL;
+    urlDatabase[shortURL] = { longURL, userID };
+    res.redirect(`/urls/${shortURL}`);
   }
 });
 
 // Add a new route for handling our redirect links.
 app.get(`/urls/:shortURL`, (req, res) => {
-  if(!req.cookies["user_id"]){
-    res.redirect("/login");
-    return res.status(403).send("Error 401 - Unauthorized Error");
 
-  } else {
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
   const templateVars = {
     shortURL,
     longURL,
     user: users[req.cookies["user_id"]]
   };
   res.render("urls_show", templateVars);
-}
 });
 
 // Redirect the user to the longURL.
 app.get("/u/:shortURL", (req, res) => {
+  if (!req.cookies["user_id"]) {
+    res.status(400);
+  }
   const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
 
 // Post request handler to delete URL.
 app.post("/urls/:shortURL/delete", (req, res) => {
-  if(!req.cookies["user_id"]){
+  if (!req.cookies["user_id"]) {
+    res.status(401);
     res.redirect("/login");
-    return res.status(403).send("Error 401 - Unauthorized Error");
 
   } else {
-  const shortURL = req.params.shortURL;
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
+    const shortURL = req.params.shortURL;
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
   }
 });
 
+// Post request handler to edit URL.
 app.post("/urls/:id", (req, res) => {
-  const id = req.params.id;
-  const longURL = req.body.longURL;
-  urlDatabase[id] = longURL;
-  res.redirect("/urls");
+  if (!req.cookies["user_id"]) {
+    res.status(401);
+    res.redirect("/login");
+
+  } else {
+    const id = req.params.id;
+    const longURL = req.body.longURL;
+    urlDatabase[id].longURL = longURL;
+    res.redirect("/urls");
+  }
 });
 
 // Add a new route /login.
@@ -175,7 +201,6 @@ app.post("/login", (req, res) => {
   } else {
     return res.status(403).send("Error 403 - Forbidden Error");
   }
-
 });
 
 // global object to store and access the users in the app.
@@ -213,8 +238,6 @@ app.post("/register", (req, res) => {
     res.cookie("user_id", userId);
     res.redirect("/urls");
   }
-
-
 });
 
 // Add a new route /url.json.
