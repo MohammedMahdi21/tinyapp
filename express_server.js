@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const { getUserByEmail, generateRandomString, urlsForUser } = require("./helpers");
+const { getUserByEmail, generateRandomString, urlsForUser, lookupPassword } = require("./helpers");
 const app = express();
 const PORT = 8080;
 
@@ -94,7 +94,11 @@ app.post("/urls", (req, res) => {
 
 // Handles request when user clicks on Edit button on urls_show page to update longURL
 app.get(`/urls/:shortURL`, (req, res) => {
+  if (!req.session.user_id) {
+    res.status(401);
+    res.redirect("/login");
 
+  } else {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL].longURL;
   const templateVars = {
@@ -103,6 +107,7 @@ app.get(`/urls/:shortURL`, (req, res) => {
     user: users[req.session.user_id]
   };
   res.render("urls_show", templateVars);
+}
 });
 
 // Handles request, user directed to longURL website
