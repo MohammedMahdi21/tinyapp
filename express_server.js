@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session')
 const bcrypt = require('bcryptjs');
-const getUserByEmail = require("./helpers")
+const {getUserByEmail, generateRandomString, urlsForUser, lookupPassword} = require("./helpers")
 const app = express();
 const PORT = 8080;
 
@@ -45,33 +45,7 @@ const users = {
   }
 };
 
-// Generate a random shortURL function.
-const generateRandomString = function() {
-  const result = Math.random().toString(36).substring(2, 7);
-  return result;
-};
 
-//Lookup password helper function.
-const lookupPassword = function(passwordEntered) {
-  for (let user in users) {
-    let hashedPassword = users[user].password; 
-    if (bcrypt.compareSync(passwordEntered, hashedPassword)) {
-      return true;
-    }
-  }
-  return false;
-};
-
-//Lookup URLs created by the user helper function.
-const urlsForUser = function(id) {
-  const urls = {};
-  for (let userUrls in urlDatabase) {
-    if (id === urlDatabase[userUrls].userID) {
-      urls[userUrls] = { longURL: urlDatabase[userUrls].longURL };
-    }
-  }
-  return urls;
-};
 
 // Root path.
 app.get("/", (req, res) => {
@@ -87,7 +61,7 @@ app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     res.status(401);
   }
-  const userURLs = urlsForUser(req.session.user_id);
+  const userURLs = urlsForUser(urlDatabase, req.session.user_id);
   const templateVars = {
     urls: userURLs,
     user: users[req.session.user_id]
@@ -186,7 +160,7 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const foundUser = getUserByEmail(email, users)
-  if (foundUser && lookupPassword(password)) {
+  if (foundUser && lookupPassword(password, users)) {
     const userId = foundUser.id;
     req.session.user_id = userId;
     res.redirect("/urls");

@@ -1,5 +1,5 @@
 const { assert } = require("chai");
-const  {getUserByEmail}  = require('../helpers');
+const { generateRandomString, getUserByEmail, urlsForUser } = require("../helpers.js");
 
 const testUsers = {
   "userRandomID": {
@@ -11,6 +11,21 @@ const testUsers = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
+  }
+};
+
+const urlDatabase = {
+  "b2xVn2": {
+    longURL: "https://stackoverflow.com/",
+    userID: "userRandomID"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "user2RandomID"
+  },
+  "k71hb9": {
+    longURL: "https://dev.to",
+    userID: "userRandomID"
   }
 };
 
@@ -30,5 +45,36 @@ describe("getUserByEmail", function() {
     const expectedUserID = undefined;
 
     assert.equal(user, expectedUserID);
+  });
+});
+
+describe("generateRandomString", function() {
+  it("should return a random alphanumeric string", function() {
+    const alphaNum = generateRandomString();
+
+    assert.isString(alphaNum);
+  });
+});
+
+describe("urlsForUser", function() {
+  it("should return an object if there are urls in the database belonging to a given user", function() {
+    const urls = urlsForUser(urlDatabase, "userRandomID");
+    const expectedUrls = {
+      b2xVn2: {
+        longURL: "https://stackoverflow.com/",
+      },
+      k71hb9: {
+        longURL: "https://dev.to"
+      }
+    };
+
+    assert.deepEqual(urls, expectedUrls);
+  });
+
+  it("should return an empty object if there are no urls in the database belonging to a given user", function() {
+    const urls = urlsForUser(urlDatabase, "a8n7rx");
+    const expectedUrls = {};
+
+    assert.deepEqual(urls, expectedUrls);
   });
 });
