@@ -13,10 +13,9 @@ app.use(cookieSession({
 })
 );
 
-
-
 // Express app will use EJS as its templating engine.
 app.set("view engine", "ejs");
+
 
 const urlDatabase = {
   b6UTxQ: {
@@ -31,6 +30,16 @@ const urlDatabase = {
 
 // global object to store and access the users in the app.
 const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: bcrypt.hashSync("purple-monkey-dinosaur", 10)
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: bcrypt.hashSync("dishwasher-funk", 10)
+  }
 };
 
 // Root path.
@@ -42,7 +51,7 @@ app.get("/", (req, res) => {
   res.render("root", templateVars);
 });
 
-// Add a new route /urls.
+// Handle request when user navigates to /urls page
 app.get("/urls", (req, res) => {
   if (!req.session.user_id) {
     res.status(401);
@@ -55,7 +64,7 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-// Add a new route /urls/new.
+// Handles request when user clicks on 'Create New URL'
 app.get("/urls/new", (req, res) => {
   if (!req.session.user_id) {
     return res.redirect("/login");
@@ -68,7 +77,7 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
-// Post handler to add new url.
+// Handles request when user clicks on Submit button to generate shortURL
 app.post("/urls", (req, res) => {
   if (!req.session.user_id) {
     res.status(401);
@@ -83,7 +92,7 @@ app.post("/urls", (req, res) => {
   }
 });
 
-// Add a new route for handling our redirect links.
+// Handles request when user clicks on Edit button on urls_show page to update longURL
 app.get(`/urls/:shortURL`, (req, res) => {
 
   const shortURL = req.params.shortURL;
@@ -96,7 +105,7 @@ app.get(`/urls/:shortURL`, (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// Redirect the user to the longURL.
+// Handles request, user directed to longURL website
 app.get("/u/:shortURL", (req, res) => {
   if (!req.session.user_id) {
     res.status(400);
@@ -106,7 +115,7 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-// Post request handler to delete URL.
+// Handles request when user clicks on delete button on index page
 app.post("/urls/:shortURL/delete", (req, res) => {
   if (!req.session.user_id) {
     res.status(401);
@@ -133,7 +142,7 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
-// Add a new route /login.
+// Handles request when user clicks on 'Login'. Renders page with login form.
 app.get("/login", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
@@ -142,7 +151,7 @@ app.get("/login", (req, res) => {
   res.render("urls_login", templateVars);
 });
 
-// Add login post handler
+// Post handles when user clicks on 'Login' button in Login form.
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
   const foundUser = getUserByEmail(email, users);
@@ -155,14 +164,14 @@ app.post("/login", (req, res) => {
   }
 });
 
-// global object to store and access the users in the app.
+// Post handles to logout.
 app.post("/logout", (req, res) => {
   res.clearCookie("session");
   res.clearCookie("session.sig");
   res.redirect("/urls");
 });
 
-// Add a new route /register.
+// Handles request to register. Renders page with registration form
 app.get("/register", (req, res) => {
   const templateVars = {
     urls: urlDatabase,
@@ -171,7 +180,7 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 });
 
-//Add Registration Handler
+// Post handles request when user clicks Register button on the registration form
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
   const foundUser = getUserByEmail(email, users);
@@ -192,16 +201,6 @@ app.post("/register", (req, res) => {
     req.session.user_id = userId;
     res.redirect("/urls");
   }
-});
-
-// Add a new route /url.json.
-app.get("/url.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-// Add a new route /hello.
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 // Server listening on port 8080.
