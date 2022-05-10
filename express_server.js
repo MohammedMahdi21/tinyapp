@@ -73,15 +73,6 @@ const urlsForUser = function(id) {
   return urls;
 };
 
-//Lookup user helper function.
-const lookupUserID = function(userEmail) {
-  for (let user in users) {
-    if (userEmail === users[user].email) {
-      return users[user].id;
-    }
-  }
-};
-
 // Root path.
 app.get("/", (req, res) => {
   const templateVars = {
@@ -194,9 +185,9 @@ app.get("/login", (req, res) => {
 // Add login post handler
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-
-  if (getUserByEmail(email, users) && lookupPassword(password)) {
-    const userId = lookupUserID(email);
+  const foundUser = getUserByEmail(email, users)
+  if (foundUser && lookupPassword(password)) {
+    const userId = foundUser.id;
     req.session.user_id = userId;
     res.redirect("/urls");
   } else {
@@ -206,7 +197,8 @@ app.post("/login", (req, res) => {
 
 // global object to store and access the users in the app.
 app.post("/logout", (req, res) => {
-  req.session.user_id = null;
+  res.clearCookie("session")
+  res.clearCookie("session.sig")
   res.redirect("/urls");
 });
 
@@ -222,12 +214,13 @@ app.get("/register", (req, res) => {
 //Add Registration Handler
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
+  const foundUser = getUserByEmail(email, users)
   const hashedPassword = bcrypt.hashSync(password, 10)
   const userId = generateRandomString();
   if (password === "" || email === "") {
     return res.status(400).send("Error 400 - Bad Request");
 
-  } else if (getUserByEmail(email, users)) {
+  } else if (foundUser) {
     return res.status(400).send("Error 400 - Bad Request");
 
   } else {

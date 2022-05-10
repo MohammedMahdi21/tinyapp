@@ -1,11 +1,11 @@
-//Lookup email helper function.
-const getUserByEmail = function(email, database) {
+//Lookup email and return user object - helper function.
+const getUserByEmail = function (email, database) {
   for (let user in database) {
     if (email === database[user].email) {
-      return true;
+      return database[user];
     }
   }
-  return false;
+  return undefined;
 };
 
-module.exports = getUserByEmail;
+module.exports = {getUserByEmail};
