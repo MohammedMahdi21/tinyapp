@@ -1,8 +1,8 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcryptjs');
-const {getUserByEmail, generateRandomString, urlsForUser, lookupPassword} = require("./helpers")
+const {getUserByEmail, generateRandomString, urlsForUser, lookupPassword} = require("./helpers");
 const app = express();
 const PORT = 8080;
 
@@ -10,10 +10,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
   keys: ["Moe", "Mahdi"],
-
-  // Cookie Options
-  maxAge: 24 * 60 * 60 * 1000 // 24 hours
-}))
+})
+);
 
 
 
@@ -33,19 +31,7 @@ const urlDatabase = {
 
 // global object to store and access the users in the app.
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
 };
-
-
 
 // Root path.
 app.get("/", (req, res) => {
@@ -159,7 +145,7 @@ app.get("/login", (req, res) => {
 // Add login post handler
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
-  const foundUser = getUserByEmail(email, users)
+  const foundUser = getUserByEmail(email, users);
   if (foundUser && lookupPassword(password, users)) {
     const userId = foundUser.id;
     req.session.user_id = userId;
@@ -171,8 +157,8 @@ app.post("/login", (req, res) => {
 
 // global object to store and access the users in the app.
 app.post("/logout", (req, res) => {
-  res.clearCookie("session")
-  res.clearCookie("session.sig")
+  res.clearCookie("session");
+  res.clearCookie("session.sig");
   res.redirect("/urls");
 });
 
@@ -188,8 +174,8 @@ app.get("/register", (req, res) => {
 //Add Registration Handler
 app.post("/register", (req, res) => {
   const { email, password } = req.body;
-  const foundUser = getUserByEmail(email, users)
-  const hashedPassword = bcrypt.hashSync(password, 10)
+  const foundUser = getUserByEmail(email, users);
+  const hashedPassword = bcrypt.hashSync(password, 10);
   const userId = generateRandomString();
   if (password === "" || email === "") {
     return res.status(400).send("Error 400 - Bad Request");
