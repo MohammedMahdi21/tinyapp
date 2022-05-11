@@ -44,11 +44,10 @@ const users = {
 
 // Root path.
 app.get("/", (req, res) => {
-  const templateVars = {
-    urls: urlDatabase,
-    user: users[req.session.user_id]
-  };
-  res.render("root", templateVars);
+  if (!req.session.user_id) {
+    return res.redirect("/login");
+  }
+  res.redirect("/urls");
 });
 
 // Handle request when user navigates to /urls page
@@ -86,7 +85,10 @@ app.post("/urls", (req, res) => {
   } else {
     const shortURL = generateRandomString();
     const userID = users[req.session.user_id].id;
-    const longURL = req.body.longURL;
+    let longURL = req.body.longURL;
+    if (!longURL.startsWith("http://") || !longURL.startsWith("https://")) {
+      longURL = "https://" + longURL;
+    }
     urlDatabase[shortURL] = { longURL, userID };
     res.redirect(`/urls/${shortURL}`);
   }
@@ -96,18 +98,28 @@ app.post("/urls", (req, res) => {
 app.get(`/urls/:shortURL`, (req, res) => {
   if (!req.session.user_id) {
     res.status(401);
-    res.redirect("/login");
-
+    res.send("You are unauthorized to view this page - Error 401");
+    return;
   } else {
-  const shortURL = req.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
-  const templateVars = {
-    shortURL,
-    longURL,
-    user: users[req.session.user_id]
-  };
-  res.render("urls_show", templateVars);
-}
+    const shortURL = req.params.shortURL;
+    if (!urlDatabase[shortURL]) {
+      res.status(401);
+      res.send("URL dose not exist - Error");
+      return;
+    }
+    const longURL = urlDatabase[shortURL].longURL;
+    if (req.session.user_id !== urlDatabase[shortURL].userID) {
+      res.status(401);
+      res.send("You are unauthorized to view this URL - Error 401");
+      return;
+    }
+    const templateVars = {
+      shortURL,
+      longURL,
+      user: users[req.session.user_id]
+    };
+    res.render("urls_show", templateVars);
+  }
 });
 
 // Handles request, user directed to longURL website
@@ -116,6 +128,13 @@ app.get("/u/:shortURL", (req, res) => {
     res.status(400);
   }
   const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    res.status(401);
+    res.send("URL dose not exist - Error");
+    return;
+  }
+  console.log("Line 133:   ", urlDatabase[shortURL]);
+  console.log("Line 134", shortURL);
   const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
@@ -149,6 +168,10 @@ app.post("/urls/:id", (req, res) => {
 
 // Handles request when user clicks on 'Login'. Renders page with login form.
 app.get("/login", (req, res) => {
+  if (req.session.user_id) {
+    res.redirect("/urls");
+    return;
+  }
   const templateVars = {
     urls: urlDatabase,
     user: users[req.session.user_id]
@@ -178,6 +201,10 @@ app.post("/logout", (req, res) => {
 
 // Handles request to register. Renders page with registration form
 app.get("/register", (req, res) => {
+  if (req.session.user_id) {
+    res.redirect("/urls");
+    return;
+  }
   const templateVars = {
     urls: urlDatabase,
     user: req.session.user_id
