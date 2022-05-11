@@ -133,8 +133,6 @@ app.get("/u/:shortURL", (req, res) => {
     res.send("URL dose not exist - Error");
     return;
   }
-  console.log("Line 133:   ", urlDatabase[shortURL]);
-  console.log("Line 134", shortURL);
   const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
